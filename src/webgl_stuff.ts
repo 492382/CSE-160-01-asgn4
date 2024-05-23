@@ -13,6 +13,9 @@ export class AndyScene {
   u_LightPos: WebGLUniformLocation;
   u_LightColor: WebGLUniformLocation;
   u_DoLight: WebGLUniformLocation;
+
+  u_SpotlightPos: WebGLUniformLocation;
+  u_SpotlightDirection: WebGLUniformLocation;
   
   a_Position: GLint;
   a_TexCoord: GLint;
@@ -40,6 +43,9 @@ export class AndyScene {
     this.u_LightPos = this.gl.getUniformLocation(this.program, "light_pos");
     this.u_LightColor = this.gl.getUniformLocation(this.program, "light_color");
     this.u_DoLight = this.gl.getUniformLocation(this.program, "do_lighting");
+    
+    this.u_SpotlightPos = this.gl.getUniformLocation(this.program, "spotlight_pos");
+    this.u_SpotlightDirection = this.gl.getUniformLocation(this.program, "spotlight_dir");
     
     this.a_Position = this.gl.getAttribLocation(this.program, "attribute_model_position");
     this.a_TexCoord = this.gl.getAttribLocation(this.program, "attribute_tex_coord");
@@ -87,6 +93,19 @@ export class AndyScene {
     this.gl.uniform4fv(this.u_LightColor, new Float32Array(rgba));
   }
 
+  set_spotlight_pos(pos: Vector){
+    this.gl.uniform3fv(this.u_SpotlightPos, new Float32Array(pos));
+  }
+
+  set_spotlight_dir(orientation: Rotor){
+    let out: Vector = matrix_mul_vec(
+      rotor_to_matrix(orientation),
+      [0, 0, 1]
+    );
+    this.gl.uniform3fv(this.u_SpotlightDirection, new Float32Array(out));
+  }
+
+    
   set_camera_pos(pos: Vector){
     this.gl.uniform3fv(this.u_CameraPos, new Float32Array(pos));
   }
@@ -100,7 +119,7 @@ export class AndyScene {
 
     this.gl.uniformMatrix4fv(unif, false, flattened_matrix);
   }
-
+  
   
   draw_cube(model_matrix: Matrix, texture_enum: GLint) {
     this.gl.uniform1ui(this.u_TextureEnum, texture_enum);

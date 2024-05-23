@@ -34,6 +34,10 @@ let auto_move_light: boolean = true;
 let light_pos: Vector = [5, 3, 0];
 let light_rgba: [number, number, number, number] = [1.0, 1.0, 0.0, 1.0];
 
+let spotlight_pos: Vector = [0.0, 2.0, 0.0];
+let spotlight_rgba: [number, number, number, number] = [0.5, 0.5, 1.0, 1.0];
+let spotlight_rotor: Rotor = make_rotation_rotor(0.5, [1, 0, 0]);
+
 async function main() {
   let canvas: HTMLCanvasElement = document.getElementById("andy_canvas") as HTMLCanvasElement;
 
@@ -214,17 +218,33 @@ function addUiCallbacks() {
     set_light_pos_from_sliders();
   });
 
+  document.getElementById("light_R_slider").addEventListener("input", function () {
+    set_light_color_from_sliders();
+  });
+
+  document.getElementById("light_G_slider").addEventListener("input", function () {
+    set_light_color_from_sliders();
+  });
+
+  document.getElementById("light_B_slider").addEventListener("input", function () {
+    set_light_color_from_sliders();
+  });
+  
 
 }
 
 function set_light_pos_from_sliders() {
-  
-  
   let x_pos = parseFloat((document.getElementById("light_X_slider") as HTMLInputElement).value);
   let y_pos = parseFloat((document.getElementById("light_Y_slider") as HTMLInputElement).value);
   let z_pos = parseFloat((document.getElementById("light_Z_slider") as HTMLInputElement).value);
   
   light_pos = [x_pos, y_pos, z_pos];
+}
+
+function set_light_color_from_sliders() {
+  light_rgba[0] = parseFloat((document.getElementById("light_R_slider") as HTMLInputElement).value);
+  light_rgba[1] = parseFloat((document.getElementById("light_G_slider") as HTMLInputElement).value);
+  light_rgba[2] = parseFloat((document.getElementById("light_B_slider") as HTMLInputElement).value);
 }
 
 function set_sliders_values() {
@@ -238,11 +258,14 @@ function render(milis: number) {
   scene.gl.clear(scene.gl.COLOR_BUFFER_BIT | scene.gl.DEPTH_BUFFER_BIT);
 
 
-
+  spotlight_rotor = rotor_multiply(make_rotation_rotor(milis/1000.0, [0, 1, 0]), make_rotation_rotor(0.5, [1, 0, 0]));
 
   scene.set_camera_pos(camera_pos);
   scene.set_light_pos(light_pos);
   scene.set_light_color(light_rgba);
+  
+  scene.set_spotlight_pos(spotlight_pos);
+  scene.set_spotlight_dir(spotlight_rotor);
 
 
   let norm_enum;
@@ -272,7 +295,7 @@ function render(milis: number) {
   }
 
   
-  
+  //water drops
   scene.draw_sphere(
     matrix_multiply(
       make_translation_matrix(WORLD_X_SIZE/2, (((milis%1000 / 1000) * -2) +1) * WORLD_Y_SIZE, WORLD_Z_SIZE/2),
@@ -304,7 +327,18 @@ function render(milis: number) {
     matrix_multiply(
       make_translation_matrix(light_pos[0], light_pos[1], light_pos[2]),
       make_scale_matrix(2, 2, 2)
-    ), norm_enum || 4);
+    ), 4);
+
+
+  
+  //spotlight
+  scene.gl.uniform4fv(scene.u_Color, new Float32Array(spotlight_rgba));
+  scene.draw_cube(
+    matrix_list_multiply(
+      [make_translation_matrix(spotlight_pos[0], spotlight_pos[1], spotlight_pos[2]),
+	rotor_to_matrix(spotlight_rotor),
+	make_scale_matrix(1, 1, 4),]
+    ), 5);
 
   
   let ground_matrix = matrix_multiply(

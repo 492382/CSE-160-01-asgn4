@@ -12,6 +12,8 @@ export class AndyScene {
     u_LightPos;
     u_LightColor;
     u_DoLight;
+    u_SpotlightPos;
+    u_SpotlightDirection;
     a_Position;
     a_TexCoord;
     a_NormVec;
@@ -34,6 +36,8 @@ export class AndyScene {
         this.u_LightPos = this.gl.getUniformLocation(this.program, "light_pos");
         this.u_LightColor = this.gl.getUniformLocation(this.program, "light_color");
         this.u_DoLight = this.gl.getUniformLocation(this.program, "do_lighting");
+        this.u_SpotlightPos = this.gl.getUniformLocation(this.program, "spotlight_pos");
+        this.u_SpotlightDirection = this.gl.getUniformLocation(this.program, "spotlight_dir");
         this.a_Position = this.gl.getAttribLocation(this.program, "attribute_model_position");
         this.a_TexCoord = this.gl.getAttribLocation(this.program, "attribute_tex_coord");
         this.a_NormVec = this.gl.getAttribLocation(this.program, "attribute_normal_vec");
@@ -68,6 +72,13 @@ export class AndyScene {
     }
     set_light_color(rgba) {
         this.gl.uniform4fv(this.u_LightColor, new Float32Array(rgba));
+    }
+    set_spotlight_pos(pos) {
+        this.gl.uniform3fv(this.u_SpotlightPos, new Float32Array(pos));
+    }
+    set_spotlight_dir(orientation) {
+        let out = matrix_mul_vec(rotor_to_matrix(orientation), [0, 0, 1]);
+        this.gl.uniform3fv(this.u_SpotlightDirection, new Float32Array(out));
     }
     set_camera_pos(pos) {
         this.gl.uniform3fv(this.u_CameraPos, new Float32Array(pos));
